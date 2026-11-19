@@ -1,0 +1,24 @@
+# Local system and Python artifacts
+.DS_Store
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.venv/
+venv/
+
+# Collection output and logs
+output/
+data/
+*.parquet
+*.log
+
+# Local credentials and keys
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# Local work notes
+tasks/

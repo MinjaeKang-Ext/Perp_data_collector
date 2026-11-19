@@ -1,0 +1,47 @@
+name: Five-minute trading-data collection
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  collect:
+    name: Collect five minutes of KST Parquet data
+    runs-on: ubuntu-latest
+    timeout-minutes: 7
+    env:
+      TRADING_DATA_DIR: ${{ github.workspace }}/output/trading_data_github_5m
+      TRADING_STREAM_FLUSH_SECONDS: "5"
+      TRADING_FUNDING_POLL_SECONDS: "3600"
+    steps:
+      - name: Check out collector
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt
+
+      - name: Collect for five minutes
+        shell: bash
+        run: |
+          set +e
+          timeout --signal=INT --kill-after=15s 300s python main.py
+          status=$?
+          if [ "$status" -ne 124 ] && [ "$status" -ne 130 ]; then
+            exit "$status"
+          fi
+
+      - name: Upload KST Parquet data
+        uses: actions/upload-artifact@v4
+        with:
+          name: trading-data-github-5m-parquet-${{ github.run_id }}
+          path: output/trading_data_github_5m
+          if-no-files-found: error
+          retention-days: 1
